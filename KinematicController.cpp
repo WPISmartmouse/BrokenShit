@@ -1,11 +1,18 @@
 #include "KinematicController.h"
 #include <math.h>
 
-KinematicController::KinematicController(RegulatedMotor* leftMotor, RegulatedMotor* rightMotor,
+KinematicController::KinematicController(RegulatedMotor* leftMotor,
+    RegulatedMotor* rightMotor,
 		int leftMotorDirection, int rightMotorDirection,
-		float wheelDistance, float wheelDiameter, unsigned int encoderCPR) :
-  leftMotor(leftMotor), rightMotor(rightMotor), leftMotorDirection(leftMotorDirection),
-  rightMotorDirection(rightMotorDirection), wheelDiameter(wheelDiameter), wheelDistance(wheelDistance), encoderCPR(encoderCPR), sampleTime(100) {
+		float wheelDistance, float wheelDiameter, unsigned int encoderCPR)
+  : leftMotor(leftMotor),
+  rightMotor(rightMotor),
+  leftMotorDirection(leftMotorDirection),
+  rightMotorDirection(rightMotorDirection),
+  wheelDiameter(wheelDiameter),
+  wheelDistance(wheelDistance),
+  encoderCPR(encoderCPR),
+  sampleTime(100) {
   setSampleTime(sampleTime);
 }
 
@@ -19,9 +26,9 @@ void KinematicController::setSampleTime(unsigned long sampleTime){
   rightMotor->setSampleTime(sampleTime);
 }
 
-void KinematicController::setAcceleration(
-	unsigned int forwardAcceleration, unsigned int ccwAcceleration,
-	unsigned int forwardDeceleration, unsigned int ccwDeceleration){
+void KinematicController::setAcceleration(unsigned int forwardAcceleration,
+  unsigned int ccwAcceleration, unsigned int forwardDeceleration,
+  unsigned int ccwDeceleration){
 
 	this->forwardAcceleration = mmToTick(forwardAcceleration);
 	this->ccwAcceleration = degToTick(ccwAcceleration);
@@ -52,7 +59,7 @@ boolean KinematicController::run(){
     long forwardOutput = 0;
     long ccwOutput = 0;
 
-    if (state == KINEMATIC_VELOCITY){
+    if (state == ControllerState::VELOCITY){
       if (lastForwardVelocity == targetForwardVelocity) {
         forwardOutput = targetForwardVelocity;
       }
@@ -79,7 +86,7 @@ boolean KinematicController::run(){
 
       lastForwardVelocity = forwardOutput;
       lastCCWVelocity = ccwOutput;
-    } else if (state == KINEMATIC_OFF) {
+    } else if (state == ControllerState::OFF) {
       lastForwardVelocity = 0;
       lastCCWVelocity = 0;
     }
@@ -104,27 +111,27 @@ void KinematicController::getGlobalPosition(long *x, long *y){
 }
 
 void KinematicController::goVelocity(int forwardVelocity, int ccwVelocity){
-	state = KINEMATIC_VELOCITY;
+	state = ControllerState::VELOCITY;
 	standby = false;
 	targetForwardVelocity = mmToTick(forwardVelocity);
 	targetCCWVelocity = degToTick(ccwVelocity);
 }
 
 void KinematicController::goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){
-	state = KINEMATIC_POSITION;
+	state = ControllerState::POSITION;
 	_goPosition(forwardDistance, ccwAngle, forwardSpeed, ccwSpeed);
 }
 
 void KinematicController::brake(){
-	state = KINEMATIC_OFF;
-	leftMotor->setState(MOTORSTATE_BRAKE);
-	rightMotor->setState(MOTORSTATE_BRAKE);
+	state = ControllerState::OFF;
+	leftMotor->setState(RegulatedMotor::MotorState::BRAKE);
+	rightMotor->setState(RegulatedMotor::MotorState::BRAKE);
 }
 
 void KinematicController::coast(){
-	state = KINEMATIC_OFF;
-	leftMotor->setState(MOTORSTATE_COAST);
-	rightMotor->setState(MOTORSTATE_COAST);
+	state = ControllerState::OFF;
+	leftMotor->setState(RegulatedMotor::MotorState::COAST);
+	rightMotor->setState(RegulatedMotor::MotorState::COAST);
 }
 
 void KinematicController::_goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){

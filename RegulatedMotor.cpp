@@ -2,60 +2,55 @@
 #include <RegulatedMotor.h>
 #include "../Encoder/Encoder.h"
 
-RegulatedMotor::RegulatedMotor(long* _encoder, int _fwdPin, int _revPin, int _pwmPin) : thisPosition(0), lastPosition(0), calculatedSpeed(0), lastCalculatedSpeed(0), lastOutput(0)
+RegulatedMotor::RegulatedMotor(long* encoder, int fwdPin, int revPin, int pwmPin)
+  : thisPosition(0),
+  lastPosition(0),
+  calculatedSpeed(0),
+  lastCalculatedSpeed(0),
+  lastOutput(0),
+  encoder(encoder),
+  fwdPin(fwdPin),
+  revPin(revPin),
+  pwmPin(pwmPin),
+  state(MotorState::COAST),
+  lastTime(millis()) { }
+
+RegulatedMotor::RegulatedMotor(long* encoder, int fwdPin, int revPin)
+  : RegulatedMotor(encoder, fwdPin, revPin, 0) {}
+
+void RegulatedMotor::setPID(float kp, float ki, float kd, float kvff)
 {
-	encoder = _encoder;
-	fwdPin = _fwdPin;
-	revPin = _revPin;
-	pwmPin = _pwmPin;
-	state = MOTORSTATE_COAST;
-  lastTime = millis();
+	this->kp = kp;
+	this->ki = ki;
+	this->kd = kd;
+	this->kvff = kvff;
 }
 
-RegulatedMotor::RegulatedMotor(long* _encoder, int _fwdPin, int _revPin) : thisPosition(0), lastPosition(0), calculatedSpeed(0), lastCalculatedSpeed(0), lastOutput(0)
-
+void RegulatedMotor::setSampleTime(unsigned long sampleTime)
 {
-  encoder = _encoder;
-  fwdPin = _fwdPin;
-  revPin = _revPin;
-  state = MOTORSTATE_COAST;
-  lastTime = millis();
-}
-
-
-void RegulatedMotor::setPID(float _kp, float _ki, float _kd, float _kvff)
-{
-	kp = _kp;
-	ki = _ki;
-	kd = _kd;
-	kvff = _kvff;
-}
-
-void RegulatedMotor::setSampleTime(unsigned long _sampleTime)
-{
-	sampleTime = _sampleTime;
+	this->sampleTime = sampleTime;
 }
 
 void RegulatedMotor::setSpeed(int speed){
-	state = MOTORSTATE_SPEED;
+	state = MotorState::VELOCITY;
 	targetSpeed = speed;
 }
 
 bool RegulatedMotor::run(){
-  if (state == MOTORSTATE_PWM){
+  if (state == MotorState::RAW_PWM){
     return true;
   }
 
-	if (state == MOTORSTATE_COAST){
+	if (state == MotorState::COAST){
 		goPWM(0);
-		lastState = MOTORSTATE_COAST;
+		lastState = MotorState::COAST;
 		return true;
 	}
 
-	if (state == MOTORSTATE_BRAKE) {
+	if (state == MotorState::BRAKE) {
     digitalWrite(fwdPin,255);
     digitalWrite(revPin,255);
-    lastState = MOTORSTATE_BRAKE;
+    lastState = MotorState::BRAKE;
     return true;
 	}
 
@@ -77,7 +72,7 @@ void RegulatedMotor::runNow(unsigned long deltaTime){
     const int outMin = -255;
     thisPosition = *encoder;
 
-    if (lastState == MOTORSTATE_COAST || lastState == MOTORSTATE_BRAKE){
+    if (lastState == MotorState::COAST || lastState == MotorState::BRAKE){
     	calculatedSpeed = 0;
     	iTerm = 0;
     } else {
@@ -103,7 +98,7 @@ void RegulatedMotor::runNow(unsigned long deltaTime){
     lastCalculatedSpeed = calculatedSpeed;
     lastOutput = output;
     lastPosition = thisPosition;
-    lastState = MOTORSTATE_SPEED;
+    lastState = MotorState::VELOCITY;
 }
 
 void RegulatedMotor::goPWM(int pwm){
@@ -120,8 +115,8 @@ void RegulatedMotor::goPWM(int pwm){
   }
 }
 
-void RegulatedMotor::setState(int _state){
-	state = _state;
+void RegulatedMotor::setState(MotorState state){
+	this->state = state;
 }
 
 long RegulatedMotor::getEncoder(){

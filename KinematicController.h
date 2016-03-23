@@ -2,9 +2,6 @@
 #define KinematicController_h
 #include "RegulatedMotor.h"
 #include "Arduino.h"
-#define KINEMATIC_OFF	0
-#define KINEMATIC_VELOCITY	1
-#define KINEMATIC_POSITION 2
 #define STANDBY_TOLERANCE 4
 #define STANDBY_DELAY 500
 #define round(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
@@ -13,14 +10,17 @@
 
 class KinematicController{
 public:
+
 	KinematicController(RegulatedMotor* leftMotor, RegulatedMotor* rightMotor,
 		int leftMotorDirection, int rightMotorDirection,
 		float wheelDistance, float wheelDiameter, unsigned int encoderCPR);
 
-	void setAcceleration(unsigned int forwardAcceleration, unsigned int ccwAcceleration, unsigned int forwardDeceleration, unsigned int ccwDeceleration);
+	void setAcceleration(unsigned int forwardAcceleration, unsigned int ccwAcceleration,
+      unsigned int forwardDeceleration, unsigned int ccwDeceleration);
 	void calibrate(uint16_t wheelDistance, uint16_t wheelDiameter);
 	void goVelocity(int forwardVelocity, int ccwVelocity);
-	void goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed);
+	void goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed,
+      unsigned int ccwSpeed);
 
 	void brake();
 	void coast();
@@ -37,6 +37,8 @@ public:
 	boolean isStandby();
 
   void setSampleTime(unsigned long sampleTime);
+
+  enum class ControllerState {OFF, POSITION, VELOCITY};
 
 private:
 	boolean standby = true;
@@ -65,8 +67,7 @@ private:
 	unsigned long atomicForwardDeceleration;
 	unsigned long atomicCCWDeceleration;
 
-	int state;
-
+	ControllerState state;
 
 	long targetForwardVelocity;	//tick/s
 	long targetCCWVelocity;	//tick/s
