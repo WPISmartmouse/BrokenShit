@@ -1,105 +1,103 @@
-#ifndef KinematicController_h
-#define KinematicController_h
+#pragma once
+
 #include "RegulatedMotor.h"
-#include "Arduino.h"
-#define STANDBY_TOLERANCE 4
-#define STANDBY_DELAY 500
+#include <Arduino.h>
+
 #define round(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
 
-#define MAXIMUM_DISTANCE 10000
-
 class KinematicController{
-public:
+  public:
 
-	KinematicController(RegulatedMotor* leftMotor, RegulatedMotor* rightMotor,
-		int leftMotorDirection, int rightMotorDirection,
-		float wheelDistance, float wheelDiameter, unsigned int encoderCPR);
+    KinematicController(RegulatedMotor* leftMotor, RegulatedMotor* rightMotor,
+        int leftMotorDirection, int rightMotorDirection,
+        float wheelDistance, float wheelDiameter, unsigned int encoderCPR);
 
-	void setAcceleration(unsigned int forwardAcceleration, unsigned int ccwAcceleration,
-      unsigned int forwardDeceleration, unsigned int ccwDeceleration);
-	void calibrate(uint16_t wheelDistance, uint16_t wheelDiameter);
-	void goVelocity(int forwardVelocity, int ccwVelocity);
-	void goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed,
-      unsigned int ccwSpeed);
+    void setAcceleration(unsigned int forwardAcceleration, unsigned int ccwAcceleration,
+        unsigned int forwardDeceleration, unsigned int ccwDeceleration);
+    void calibrate(uint16_t wheelDistance, uint16_t wheelDiameter);
+    void goVelocity(int forwardVelocity, int ccwVelocity);
+    void goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed,
+        unsigned int ccwSpeed);
 
-	void brake();
-	void coast();
+    void brake();
+    void coast();
 
-	boolean run();
+    boolean run();
 
-	long calculateForwardTick();
-	long calculateCCWTick();
+    long calculateForwardTick();
+    long calculateCCWTick();
 
-	long getOdometryForward();
-	long getOdometryCCW();
+    long getOdometryForward();
+    long getOdometryCCW();
 
-	void getGlobalPosition(long *x, long *y);
-	boolean isStandby();
+    void getGlobalPosition(long *x, long *y);
+    boolean isStandby();
 
-  void setSampleTime(unsigned long sampleTime);
+    void setSampleTime(unsigned long sampleTime);
 
-  enum class ControllerState {OFF, POSITION, VELOCITY};
+    enum class ControllerState {COAST, OFF, POSITION, VELOCITY};
 
-private:
-	boolean standby = true;
-	unsigned long lastRamp;
+  private:
+    boolean standby = true;
+    unsigned long lastRamp;
 
-	RegulatedMotor* leftMotor;
-	RegulatedMotor* rightMotor;
+    RegulatedMotor* leftMotor;
+    RegulatedMotor* rightMotor;
 
-	const int kp = 10;
-	unsigned long sampleTime;
+    const int kp = 10;
+    unsigned long sampleTime;
 
-	int leftMotorDirection;
-	int rightMotorDirection;
+    int leftMotorDirection;
+    int rightMotorDirection;
 
-	float wheelDistance;
-	float wheelDiameter;
-	unsigned int encoderCPR;
+    float wheelDistance;
+    float wheelDiameter;
+    unsigned int encoderCPR;
 
-	unsigned long forwardAcceleration;	//tick*s^-2
-	unsigned long ccwAcceleration;	//tick*s^-2
-	unsigned long forwardDeceleration;	//tick*s^-2
-	unsigned long ccwDeceleration;	//tick*s^-2
+    unsigned long forwardAcceleration;	//tick*s^-2
+    unsigned long ccwAcceleration;	//tick*s^-2
+    unsigned long forwardDeceleration;	//tick*s^-2
+    unsigned long ccwDeceleration;	//tick*s^-2
 
-	unsigned long atomicForwardAcceleration;
-	unsigned long atomicCCWAcceleration;
-	unsigned long atomicForwardDeceleration;
-	unsigned long atomicCCWDeceleration;
+    unsigned long atomicForwardAcceleration;
+    unsigned long atomicCCWAcceleration;
+    unsigned long atomicForwardDeceleration;
+    unsigned long atomicCCWDeceleration;
 
-	ControllerState state;
+    ControllerState state;
 
-	long targetForwardVelocity;	//tick/s
-	long targetCCWVelocity;	//tick/s
-	long lastForwardVelocity = 0;	//tick/s
-	long lastCCWVelocity = 0;	//tick/s
+    long targetForwardVelocity;	//tick/s
+    long targetCCWVelocity;	//tick/s
+    long lastForwardVelocity = 0;	//tick/s
+    long lastCCWVelocity = 0;	//tick/s
 
-	long targetForwardTick;
-	long targetCCWTick;
-	long positionForwardVelocity;
-	long positionCCWVelocity;
+    long targetForwardTick;
+    long targetCCWTick;
+    long positionForwardVelocity;
+    long positionCCWVelocity;
 
-	unsigned long originTime;
-	long originForwardTick;
-	long originCCWTick;
+    unsigned long originTime;
+    long originForwardTick;
+    long originCCWTick;
 
-	unsigned long lastRunTime;
+    unsigned long lastRunTime;
 
-	long lastLocalX = 0;
-	long lastLocalTheta = 0;
+    long lastLocalX = 0;
+    long lastLocalTheta = 0;
 
-	float globalX = 0;
-	float globalY = 0;
+    float globalX = 0;
+    float globalY = 0;
 
-	void _goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed);
+    void _goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed);
 
-	long calculateLeftWheelSpeed(long forwardVelocity, long ccwVelocity);
-	long calculateRightWheelSpeed(long forwardVelocity, long ccwVelocity);
+    long calculateLeftWheelSpeed(long forwardVelocity, long ccwVelocity);
+    long calculateRightWheelSpeed(long forwardVelocity, long ccwVelocity);
 
-	long mmToTick(long mm);
-	long degToTick(long deg);
+    long mmToTick(long mm);
+    long degToTick(long deg);
 
-	long speedRamp(long last, long target,long up, long down);
+    long speedRamp(long last, long target,long up, long down);
+
+    static const int STANDBY_DELAY = 500;
+    static const int STANDBY_TOLERANCE = 4;
 };
-
-#endif

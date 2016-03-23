@@ -1,7 +1,8 @@
-#ifndef RegulatedMotor_h
-#define RegulatedMotor_h
+#pragma once
+
 #define LIBRARY_VERSION	2.0.0
-#include "../Encoder/Encoder.h"
+
+#include <Encoder.h>
 
 class RegulatedMotor {
   public:
@@ -57,4 +58,3 @@ class RegulatedMotor {
     //int getPWM(int speed);
 
 };
-#endif

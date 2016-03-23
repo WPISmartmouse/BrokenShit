@@ -1,6 +1,5 @@
-#include "Arduino.h"
-#include <RegulatedMotor.h>
-#include "../Encoder/Encoder.h"
+#include <Arduino.h>
+#include "RegulatedMotor.h"
 
 RegulatedMotor::RegulatedMotor(long* encoder, int fwdPin, int revPin, int pwmPin)
   : thisPosition(0),
@@ -20,20 +19,20 @@ RegulatedMotor::RegulatedMotor(long* encoder, int fwdPin, int revPin)
 
 void RegulatedMotor::setPID(float kp, float ki, float kd, float kvff)
 {
-	this->kp = kp;
-	this->ki = ki;
-	this->kd = kd;
-	this->kvff = kvff;
+  this->kp = kp;
+  this->ki = ki;
+  this->kd = kd;
+  this->kvff = kvff;
 }
 
 void RegulatedMotor::setSampleTime(unsigned long sampleTime)
 {
-	this->sampleTime = sampleTime;
+  this->sampleTime = sampleTime;
 }
 
 void RegulatedMotor::setSpeed(int speed){
-	state = MotorState::VELOCITY;
-	targetSpeed = speed;
+  state = MotorState::VELOCITY;
+  targetSpeed = speed;
 }
 
 bool RegulatedMotor::run(){
@@ -41,64 +40,64 @@ bool RegulatedMotor::run(){
     return true;
   }
 
-	if (state == MotorState::COAST){
-		goPWM(0);
-		lastState = MotorState::COAST;
-		return true;
-	}
+  if (state == MotorState::COAST){
+    goPWM(0);
+    lastState = MotorState::COAST;
+    return true;
+  }
 
-	if (state == MotorState::BRAKE) {
+  if (state == MotorState::BRAKE) {
     digitalWrite(fwdPin,255);
     digitalWrite(revPin,255);
     lastState = MotorState::BRAKE;
     return true;
-	}
+  }
 
-	unsigned long thisTime = millis();
-	unsigned long deltaTime = thisTime - lastTime;
+  unsigned long thisTime = millis();
+  unsigned long deltaTime = thisTime - lastTime;
 
 
   if(deltaTime>=sampleTime){
     runNow(deltaTime);
     lastTime = thisTime;
 
-	  return true;
+    return true;
   }
   return false;
 }
 
 void RegulatedMotor::runNow(unsigned long deltaTime){
-    const int outMax = 255;
-    const int outMin = -255;
-    thisPosition = *encoder;
+  const int outMax = 255;
+  const int outMin = -255;
+  thisPosition = *encoder;
 
-    if (lastState == MotorState::COAST || lastState == MotorState::BRAKE){
-    	calculatedSpeed = 0;
-    	iTerm = 0;
-    } else {
-    	calculatedSpeed = ((thisPosition - lastPosition) * 1000L) / ((long) deltaTime);
-    }
+  if (lastState == MotorState::COAST || lastState == MotorState::BRAKE){
+    calculatedSpeed = 0;
+    iTerm = 0;
+  } else {
+    calculatedSpeed = ((thisPosition - lastPosition) * 1000L) / ((long) deltaTime);
+  }
 
-    error = targetSpeed - calculatedSpeed;
-    iTerm += (ki * error);
+  error = targetSpeed - calculatedSpeed;
+  iTerm += (ki * error);
 
-    if (iTerm > outMax) {
-      iTerm = outMax;
-    }
-    else if (iTerm < outMin) {
-      iTerm = outMin;
-    }
+  if (iTerm > outMax) {
+    iTerm = outMax;
+  }
+  else if (iTerm < outMin) {
+    iTerm = outMin;
+  }
 
-    int dTerm = (kd *(calculatedSpeed - lastCalculatedSpeed)) / ((long) deltaTime);
+  int dTerm = (kd *(calculatedSpeed - lastCalculatedSpeed)) / ((long) deltaTime);
 
-    int output = constrain(kp * error + iTerm - dTerm + kvff * targetSpeed,outMin,outMax);
+  int output = constrain(kp * error + iTerm - dTerm + kvff * targetSpeed,outMin,outMax);
 
-	  goPWM(output);
+  goPWM(output);
 
-    lastCalculatedSpeed = calculatedSpeed;
-    lastOutput = output;
-    lastPosition = thisPosition;
-    lastState = MotorState::VELOCITY;
+  lastCalculatedSpeed = calculatedSpeed;
+  lastOutput = output;
+  lastPosition = thisPosition;
+  lastState = MotorState::VELOCITY;
 }
 
 void RegulatedMotor::goPWM(int pwm){
@@ -116,7 +115,7 @@ void RegulatedMotor::goPWM(int pwm){
 }
 
 void RegulatedMotor::setState(MotorState state){
-	this->state = state;
+  this->state = state;
 }
 
 long RegulatedMotor::getEncoder(){
