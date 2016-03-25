@@ -8,15 +8,23 @@
 class KinematicController{
   public:
 
+    // \brief units for everything is in millimeters and radians
     KinematicController(RegulatedMotor* leftMotor, RegulatedMotor* rightMotor,
         int leftMotorDirection, int rightMotorDirection,
         float wheelDistance, float wheelDiameter, unsigned int encoderCPR);
 
+    // \brief units in mm/s^2
     void setAcceleration(unsigned int forwardAcceleration, unsigned int ccwAcceleration,
         unsigned int forwardDeceleration, unsigned int ccwDeceleration);
-    void calibrate(uint16_t wheelDistance, uint16_t wheelDiameter);
-    void goVelocity(int forwardVelocity, int ccwVelocity);
-    void goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed,
+
+    // \brief units in mm
+    void setDriveBaseProperties(uint16_t wheelDistance, uint16_t wheelDiameter);
+
+    // \brief units in mm/s an radians/s
+    void setVelocity(int forwardVelocity, int ccwVelocity);
+
+    // \brief units in mm, radians, mm/s an radians/s
+    void travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed,
         unsigned int ccwSpeed);
 
     void brake();
@@ -35,9 +43,10 @@ class KinematicController{
 
     void setSampleTime(unsigned long sampleTime);
 
+  private:
+
     enum class ControllerState {COAST, OFF, POSITION, VELOCITY};
 
-  private:
     boolean standby = true;
     unsigned long lastRamp;
 
@@ -88,7 +97,7 @@ class KinematicController{
     float globalX = 0;
     float globalY = 0;
 
-    void _goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed);
+    void _travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed);
 
     long calculateLeftWheelSpeed(long forwardVelocity, long ccwVelocity);
     long calculateRightWheelSpeed(long forwardVelocity, long ccwVelocity);

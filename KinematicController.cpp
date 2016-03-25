@@ -16,7 +16,7 @@ KinematicController::KinematicController(RegulatedMotor* leftMotor,
     setSampleTime(sampleTime);
   }
 
-void KinematicController::calibrate(uint16_t wheelDistance, uint16_t wheelDiameter){
+void KinematicController::setDriveBaseProperties(uint16_t wheelDistance, uint16_t wheelDiameter){
   this->wheelDistance = wheelDistance;
   this->wheelDiameter = wheelDiameter;
 }
@@ -45,10 +45,6 @@ void KinematicController::setAcceleration(unsigned int forwardAcceleration,
 boolean KinematicController::run(){
   unsigned long currentTime = millis();
   unsigned long deltaTime = currentTime - lastRunTime;
-
-  Serial.print(sampleTime);
-  Serial.print(" ");
-  Serial.print(deltaTime);
 
   if (deltaTime >= sampleTime){
 
@@ -110,16 +106,16 @@ void KinematicController::getGlobalPosition(long *x, long *y){
   *y = round(globalY);
 }
 
-void KinematicController::goVelocity(int forwardVelocity, int ccwVelocity){
+void KinematicController::setVelocity(int forwardVelocity, int ccwVelocity){
   state = ControllerState::VELOCITY;
   standby = false;
   targetForwardVelocity = mmToTick(forwardVelocity);
   targetCCWVelocity = degToTick(ccwVelocity);
 }
 
-void KinematicController::goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){
+void KinematicController::travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){
   state = ControllerState::POSITION;
-  _goPosition(forwardDistance, ccwAngle, forwardSpeed, ccwSpeed);
+  _travel(forwardDistance, ccwAngle, forwardSpeed, ccwSpeed);
 }
 
 void KinematicController::brake(){
@@ -134,7 +130,7 @@ void KinematicController::coast(){
   rightMotor->setState(RegulatedMotor::MotorState::COAST);
 }
 
-void KinematicController::_goPosition(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){
+void KinematicController::_travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){
   originTime = millis();
   originForwardTick = calculateForwardTick();
   originCCWTick = calculateCCWTick();
