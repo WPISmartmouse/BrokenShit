@@ -4,7 +4,7 @@
 KinematicController::KinematicController(RegulatedMotor* leftMotor,
     RegulatedMotor* rightMotor,
     int leftMotorDirection, int rightMotorDirection,
-    float wheelDistance, float wheelDiameter, unsigned int encoderCPR)
+    float wheelDistance, float wheelDiameter, float encoderCPR)
   : leftMotor(leftMotor),
   rightMotor(rightMotor),
   leftMotorDirection(leftMotorDirection),
@@ -12,9 +12,14 @@ KinematicController::KinematicController(RegulatedMotor* leftMotor,
   wheelDiameter(wheelDiameter),
   wheelDistance(wheelDistance),
   encoderCPR(encoderCPR),
-  sampleTime(100) {
+  sampleTime(5) {
     setSampleTime(sampleTime);
   }
+
+void KinematicController::setup(){
+  leftMotor->setup();
+  rightMotor->setup();
+}
 
 void KinematicController::setDriveBaseProperties(uint16_t wheelDistance, uint16_t wheelDiameter){
   this->wheelDistance = wheelDistance;

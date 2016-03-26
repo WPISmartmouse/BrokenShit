@@ -11,7 +11,10 @@ class KinematicController{
     // \brief units for everything is in millimeters and radians
     KinematicController(RegulatedMotor* leftMotor, RegulatedMotor* rightMotor,
         int leftMotorDirection, int rightMotorDirection,
-        float wheelDistance, float wheelDiameter, unsigned int encoderCPR);
+        float wheelDistance, float wheelDiameter, float encoderCPR);
+
+    // \brief you have to call this in setup
+    void setup();
 
     // \brief units in mm/s^2
     void setAcceleration(unsigned int forwardAcceleration, unsigned int ccwAcceleration,
@@ -61,7 +64,7 @@ class KinematicController{
 
     float wheelDistance;
     float wheelDiameter;
-    unsigned int encoderCPR;
+    float encoderCPR;
 
     unsigned long forwardAcceleration;	//tick*s^-2
     unsigned long ccwAcceleration;	//tick*s^-2

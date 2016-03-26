@@ -7,11 +7,11 @@
 class RegulatedMotor {
   public:
 
-    RegulatedMotor(long* encoder, int fwdPin, int revPin, int pwmPin);
-    RegulatedMotor(long* encoder, int fwdPin, int revPin);
+    RegulatedMotor(int encoderPinA, int encoderPinB, int fwdPin, int revPin);
 
     enum class MotorState {COAST, RAW_PWM, BRAKE, VELOCITY};
 
+    void setup();
     bool run();
     void runNow(unsigned long deltaTime);
     void setSpeed(int speed);
@@ -20,11 +20,13 @@ class RegulatedMotor {
     void setSampleTime(unsigned long sampleTime);
     void goPWM(int pwm);
     long getEncoder();
-    int getError();
 
   private:
 
-    long* encoder;
+    Encoder encoder;
+
+    int encoderPinA;
+    int encoderPinB;
 
     long thisPosition;
     long lastPosition;
@@ -52,9 +54,7 @@ class RegulatedMotor {
 
     int fwdPin;
     int revPin;
-    int pwmPin;
 
     int error;
-    //int getPWM(int speed);
 
 };

@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "RegulatedMotor.h"
 
-RegulatedMotor::RegulatedMotor(long* encoder, int fwdPin, int revPin, int pwmPin)
+RegulatedMotor::RegulatedMotor(int encoderPinA, int encoderPinB, int fwdPin, int revPin)
   : thisPosition(0),
   lastPosition(0),
   calculatedSpeed(0),
@@ -10,12 +10,15 @@ RegulatedMotor::RegulatedMotor(long* encoder, int fwdPin, int revPin, int pwmPin
   encoder(encoder),
   fwdPin(fwdPin),
   revPin(revPin),
-  pwmPin(pwmPin),
+  encoderPinA(encoderPinA),
+  encoderPinB(encoderPinB),
   state(MotorState::COAST),
-  lastTime(millis()) { }
+  lastTime(millis()) {
+}
 
-RegulatedMotor::RegulatedMotor(long* encoder, int fwdPin, int revPin)
-  : RegulatedMotor(encoder, fwdPin, revPin, 0) {}
+void RegulatedMotor::setup(){
+  encoder.init(encoderPinA, encoderPinB);
+}
 
 void RegulatedMotor::setPID(float kp, float ki, float kd, float kvff)
 {
@@ -69,7 +72,8 @@ bool RegulatedMotor::run(){
 void RegulatedMotor::runNow(unsigned long deltaTime){
   const int outMax = 255;
   const int outMin = -255;
-  thisPosition = *encoder;
+
+  thisPosition = encoder.read();
 
   if (lastState == MotorState::COAST || lastState == MotorState::BRAKE){
     calculatedSpeed = 0;
@@ -119,9 +123,5 @@ void RegulatedMotor::setState(MotorState state){
 }
 
 long RegulatedMotor::getEncoder(){
-  long tmp = *encoder;
-}
-
-int RegulatedMotor::getError(){
-  return error;
+  return encoder.read();
 }
