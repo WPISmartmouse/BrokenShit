@@ -4,13 +4,13 @@
 KinematicController::KinematicController(RegulatedMotor* leftMotor,
     RegulatedMotor* rightMotor,
     int leftMotorDirection, int rightMotorDirection,
-    float wheelDistance, float wheelDiameter, float encoderCPR)
+    float trackWidth, float wheelDiameter, float encoderCPR)
   : leftMotor(leftMotor),
   rightMotor(rightMotor),
   leftMotorDirection(leftMotorDirection),
   rightMotorDirection(rightMotorDirection),
   wheelDiameter(wheelDiameter),
-  wheelDistance(wheelDistance),
+  trackWidth(trackWidth),
   encoderCPR(encoderCPR),
   sampleTime(5) {
     setSampleTime(sampleTime);
@@ -21,8 +21,8 @@ void KinematicController::setup(){
   rightMotor->setup();
 }
 
-void KinematicController::setDriveBaseProperties(uint16_t wheelDistance, uint16_t wheelDiameter){
-  this->wheelDistance = wheelDistance;
+void KinematicController::setDriveBaseProperties(uint16_t trackWidth, uint16_t wheelDiameter){
+  this->trackWidth = trackWidth;
   this->wheelDiameter = wheelDiameter;
 }
 
@@ -36,9 +36,9 @@ void KinematicController::setAcceleration(unsigned int forwardAcceleration,
     unsigned int ccwDeceleration){
 
   this->forwardAcceleration = mmToTick(forwardAcceleration);
-  this->ccwAcceleration = degToTick(ccwAcceleration);
+  this->ccwAcceleration = radToTick(ccwAcceleration);
   this->forwardDeceleration = mmToTick(forwardDeceleration);
-  this->ccwDeceleration = degToTick(ccwDeceleration);
+  this->ccwDeceleration = radToTick(ccwDeceleration);
 
   atomicForwardAcceleration = (long)forwardAcceleration * sampleTime / 1000;
   atomicForwardDeceleration = (long)forwardDeceleration * sampleTime / 1000;
@@ -115,7 +115,7 @@ void KinematicController::setVelocity(int forwardVelocity, int ccwVelocity){
   state = ControllerState::VELOCITY;
   standby = false;
   targetForwardVelocity = mmToTick(forwardVelocity);
-  targetCCWVelocity = degToTick(ccwVelocity);
+  targetCCWVelocity = radToTick(ccwVelocity);
 }
 
 void KinematicController::travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){
@@ -140,7 +140,7 @@ void KinematicController::_travel(int forwardDistance, int ccwAngle, unsigned in
   originForwardTick = calculateForwardTick();
   originCCWTick = calculateCCWTick();
   targetForwardTick = mmToTick(forwardDistance);
-  targetCCWTick = degToTick(ccwAngle);
+  targetCCWTick = radToTick(ccwAngle);
   positionForwardVelocity = forwardSpeed;
   positionCCWVelocity = ccwSpeed;
 }
@@ -150,8 +150,8 @@ long KinematicController::mmToTick(long mm){
   return (mm*encoderCPR)/(M_PI*wheelDiameter);
 }
 
-long KinematicController::degToTick(long deg){
-  return mmToTick(deg*wheelDistance*M_PI/180)/2;
+long KinematicController::radToTick(long rad){
+  return mmToTick(rad*trackWidth);
 }
 
 long KinematicController::calculateLeftWheelSpeed(long forwardVelocity, long ccwVelocity){
@@ -203,5 +203,5 @@ long KinematicController::getOdometryForward(){
 }
 
 long KinematicController::getOdometryCCW(){
-  return (calculateCCWTick() * (M_PI*wheelDiameter) / encoderCPR)/(wheelDistance*M_PI/180);
+  return (calculateCCWTick() * (M_PI*wheelDiameter) / encoderCPR)/(trackWidth*M_PI/180);
 }

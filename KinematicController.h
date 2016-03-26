@@ -11,7 +11,7 @@ class KinematicController{
     // \brief units for everything is in millimeters and radians
     KinematicController(RegulatedMotor* leftMotor, RegulatedMotor* rightMotor,
         int leftMotorDirection, int rightMotorDirection,
-        float wheelDistance, float wheelDiameter, float encoderCPR);
+        float trackWidth, float wheelDiameter, float encoderCPR);
 
     // \brief you have to call this in setup
     void setup();
@@ -21,7 +21,7 @@ class KinematicController{
         unsigned int forwardDeceleration, unsigned int ccwDeceleration);
 
     // \brief units in mm
-    void setDriveBaseProperties(uint16_t wheelDistance, uint16_t wheelDiameter);
+    void setDriveBaseProperties(uint16_t trackWidth, uint16_t wheelDiameter);
 
     // \brief units in mm/s an radians/s
     void setVelocity(int forwardVelocity, int ccwVelocity);
@@ -62,7 +62,7 @@ class KinematicController{
     int leftMotorDirection;
     int rightMotorDirection;
 
-    float wheelDistance;
+    float trackWidth;
     float wheelDiameter;
     float encoderCPR;
 
@@ -106,7 +106,7 @@ class KinematicController{
     long calculateRightWheelSpeed(long forwardVelocity, long ccwVelocity);
 
     long mmToTick(long mm);
-    long degToTick(long deg);
+    long radToTick(long rad);
 
     long speedRamp(long last, long target,long up, long down);
 
