@@ -32,18 +32,21 @@ void KinematicController::setSampleTime(unsigned long sampleTime){
 }
 
 void KinematicController::setAcceleration(unsigned int forwardAcceleration,
-    unsigned int ccwAcceleration, unsigned int forwardDeceleration,
-    unsigned int ccwDeceleration){
+    float ccwAcceleration, unsigned int forwardDeceleration,
+    float ccwDeceleration){
 
   this->forwardAcceleration = mmToTick(forwardAcceleration);
   this->ccwAcceleration = radToTick(ccwAcceleration);
   this->forwardDeceleration = mmToTick(forwardDeceleration);
   this->ccwDeceleration = radToTick(ccwDeceleration);
 
-  atomicForwardAcceleration = (long)forwardAcceleration * sampleTime / 1000;
-  atomicForwardDeceleration = (long)forwardDeceleration * sampleTime / 1000;
-  atomicCCWAcceleration = (long)ccwAcceleration * sampleTime / 1000;
-  atomicCCWDeceleration = (long)ccwDeceleration * sampleTime / 1000;
+  forwardAccelerationStep = forwardAcceleration * sampleTime / 1000;
+  forwardDecelerationStep = forwardDeceleration * sampleTime / 1000;
+  ccwAccelerationStep = ccwAcceleration * sampleTime;
+  ccwDecelerationStep = ccwDeceleration * sampleTime;
+
+  Serial.println(forwardAcceleration);
+  Serial.println(forwardAccelerationStep);
 }
 
 
@@ -65,7 +68,7 @@ boolean KinematicController::run(){
         forwardOutput = targetForwardVelocity;
       }
       else {
-        forwardOutput = speedRamp(lastForwardVelocity, targetForwardVelocity, atomicForwardAcceleration, atomicForwardDeceleration);
+        forwardOutput = speedRamp(lastForwardVelocity, targetForwardVelocity, forwardAccelerationStep, forwardDecelerationStep);
         standby = false;
         lastRamp = currentTime;
       }
@@ -74,7 +77,7 @@ boolean KinematicController::run(){
         ccwOutput = targetCCWVelocity;
       }
       else {
-        ccwOutput = speedRamp(lastCCWVelocity, targetCCWVelocity, atomicCCWAcceleration, atomicCCWDeceleration);
+        ccwOutput = speedRamp(lastCCWVelocity, targetCCWVelocity, ccwAccelerationStep, ccwDecelerationStep);
         standby = false;
         lastRamp = currentTime;
       }
@@ -111,14 +114,14 @@ void KinematicController::getGlobalPosition(long *x, long *y){
   *y = round(globalY);
 }
 
-void KinematicController::setVelocity(int forwardVelocity, int ccwVelocity){
+void KinematicController::setVelocity(int forwardVelocity, float ccwVelocity){
   state = ControllerState::VELOCITY;
   standby = false;
   targetForwardVelocity = mmToTick(forwardVelocity);
   targetCCWVelocity = radToTick(ccwVelocity);
 }
 
-void KinematicController::travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){
+void KinematicController::travel(int forwardDistance, float ccwAngle, unsigned int forwardSpeed, float ccwSpeed){
   state = ControllerState::POSITION;
   _travel(forwardDistance, ccwAngle, forwardSpeed, ccwSpeed);
 }
@@ -135,7 +138,7 @@ void KinematicController::coast(){
   rightMotor->setState(RegulatedMotor::MotorState::COAST);
 }
 
-void KinematicController::_travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed){
+void KinematicController::_travel(int forwardDistance, float ccwAngle, unsigned int forwardSpeed, float ccwSpeed){
   originTime = millis();
   originForwardTick = calculateForwardTick();
   originCCWTick = calculateCCWTick();
@@ -150,7 +153,7 @@ long KinematicController::mmToTick(long mm){
   return (mm*encoderCPR)/(M_PI*wheelDiameter);
 }
 
-long KinematicController::radToTick(long rad){
+long KinematicController::radToTick(float rad){
   return mmToTick(rad*trackWidth);
 }
 

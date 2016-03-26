@@ -16,19 +16,19 @@ class KinematicController{
     // \brief you have to call this in setup
     void setup();
 
-    // \brief units in mm/s^2
-    void setAcceleration(unsigned int forwardAcceleration, unsigned int ccwAcceleration,
-        unsigned int forwardDeceleration, unsigned int ccwDeceleration);
+    // \brief units in mm/s^2 rad/s^2
+    void setAcceleration(unsigned int forwardAcceleration, float ccwAcceleration,
+        unsigned int forwardDeceleration, float ccwDeceleration);
 
     // \brief units in mm
     void setDriveBaseProperties(uint16_t trackWidth, uint16_t wheelDiameter);
 
     // \brief units in mm/s an radians/s
-    void setVelocity(int forwardVelocity, int ccwVelocity);
+    void setVelocity(int forwardVelocity, float ccwVelocity);
 
     // \brief units in mm, radians, mm/s an radians/s
-    void travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed,
-        unsigned int ccwSpeed);
+    void travel(int forwardDistance, float ccwAngle, unsigned int forwardSpeed,
+        float ccwSpeed);
 
     void brake();
     void coast();
@@ -57,7 +57,7 @@ class KinematicController{
     RegulatedMotor* rightMotor;
 
     const int kp = 10;
-    unsigned long sampleTime;
+    unsigned long sampleTime; //milliseconds
 
     int leftMotorDirection;
     int rightMotorDirection;
@@ -67,14 +67,14 @@ class KinematicController{
     float encoderCPR;
 
     unsigned long forwardAcceleration;	//tick*s^-2
-    unsigned long ccwAcceleration;	//tick*s^-2
+    unsigned long ccwAcceleration;	//rad*s^-2
     unsigned long forwardDeceleration;	//tick*s^-2
-    unsigned long ccwDeceleration;	//tick*s^-2
+    unsigned long ccwDeceleration;	//rad*s^-2
 
-    unsigned long atomicForwardAcceleration;
-    unsigned long atomicCCWAcceleration;
-    unsigned long atomicForwardDeceleration;
-    unsigned long atomicCCWDeceleration;
+    unsigned long forwardAccelerationStep;
+    float ccwAccelerationStep;
+    unsigned long forwardDecelerationStep;
+    float ccwDecelerationStep;
 
     ControllerState state;
 
@@ -100,13 +100,13 @@ class KinematicController{
     float globalX = 0;
     float globalY = 0;
 
-    void _travel(int forwardDistance, int ccwAngle, unsigned int forwardSpeed, unsigned int ccwSpeed);
+    void _travel(int forwardDistance, float ccwAngle, unsigned int forwardSpeed, float ccwSpeed);
 
     long calculateLeftWheelSpeed(long forwardVelocity, long ccwVelocity);
     long calculateRightWheelSpeed(long forwardVelocity, long ccwVelocity);
 
     long mmToTick(long mm);
-    long radToTick(long rad);
+    long radToTick(float rad);
 
     long speedRamp(long last, long target,long up, long down);
 
